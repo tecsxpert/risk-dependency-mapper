@@ -1,11 +1,13 @@
 from flask import Flask
 from dotenv import load_dotenv
-from routes.ai_routes import ai_bp
+from routes.describe import describe_bp
 
 load_dotenv()
 
 app = Flask(__name__)
-app.register_blueprint(ai_bp)
+
+# Register route
+app.register_blueprint(describe_bp)
 
 @app.route("/health")
 def health():
