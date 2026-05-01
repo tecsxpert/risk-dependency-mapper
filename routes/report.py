@@ -1,7 +1,5 @@
-from flask import Blueprint, request, jsonify
-from services.groq_client import call_groq_safe
-import json
-import re
+from flask import Blueprint, request, Response
+from services.groq_client import stream_groq
 
 report_bp = Blueprint("report", __name__)
 
@@ -12,13 +10,6 @@ def load_prompt(user_input):
     return template.replace("{input}", user_input)
 
 
-def extract_json(text):
-    match = re.search(r'\{.*\}', text, re.DOTALL)
-    if match:
-        return match.group(0)
-    return None
-
-
 @report_bp.route("/generate-report", methods=["POST"])
 def generate_report():
 
@@ -26,43 +17,12 @@ def generate_report():
     user_input = data.get("input", "").strip()
 
     if not user_input:
-        return jsonify({"error": "Input required"}), 400
+        return Response("data: Input required\n\n", mimetype="text/event-stream")
 
     prompt = load_prompt(user_input)
 
-    # ✅ Safe AI call
-    result = call_groq_safe(prompt)
+    def event_stream():
+        for chunk in stream_groq(prompt):
+            yield f"data: {chunk}\n\n"
 
-    # ✅ Handle AI failure (Day 7 requirement)
-    if not result:
-        return jsonify({
-            "title": "AI Report Unavailable",
-            "executive_summary": None,
-            "overview": None,
-            "top_items": [],
-            "recommendations": []
-        })
-
-    json_part = extract_json(result)
-
-    if not json_part:
-        return jsonify({
-            "title": "AI Report Unavailable",
-            "executive_summary": None,
-            "overview": None,
-            "top_items": [],
-            "recommendations": []
-        })
-
-    try:
-        parsed = json.loads(json_part)
-    except:
-        return jsonify({
-            "title": "AI Report Unavailable",
-            "executive_summary": None,
-            "overview": None,
-            "top_items": [],
-            "recommendations": []
-        })
-
-    return jsonify(parsed)
+    return Response(event_stream(), mimetype="text/event-stream")
