@@ -1,15 +1,16 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import Detail from "./pages/Detail";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Dashboard from "./Dashboard";
+import Analytics from "./Analytics";
 
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />  {/* ✅ ADD THIS */}
-        <Route path="/detail/:id" element={<Detail />} />
+        <Route path="/analytics" element={<Analytics />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
+
+export default App;

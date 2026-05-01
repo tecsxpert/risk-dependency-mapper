@@ -1,0 +1,8 @@
+CREATE TABLE audit_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    action VARCHAR(255) NOT NULL,
+    user_name VARCHAR(255),
+    entity VARCHAR(255),
+    entity_id BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
