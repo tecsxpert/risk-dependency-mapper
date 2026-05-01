@@ -1,14 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./Dashboard";
+import Analytics from "./Analytics";
 
-export default function App() {
+function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/analytics" element={<Analytics />} />
       </Routes>
     </Router>
   );
 }
+
+export default App;

@@ -1,25 +1,39 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-function Dashboard() {
-  const navigate = useNavigate();
-  useEffect(() => { const token = localStorage.getItem("token");
-    if (!token) {
-        navigate("/");
-    }
-  })
+export default function Dashboard() {
+  const [tasks, setTasks] = useState([]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
+  useEffect(() => {
+    axios.get("http://localhost:5000/tasks")
+      .then(res => {
+        console.log(res.data); // 👈 DEBUG
+        setTasks(res.data);
+      })
+      .catch(err => {
+        console.error("Error fetching tasks:", err);
+      });
+  }, []);
 
   return (
-    <div>
-      <h1>Welcome to Dashboard</h1>
-      <button onClick={handleLogout}>Logout</button>
+    <div style={{ padding: "20px" }}>
+      <h2>📋 Task Dashboard</h2>
+
+      {tasks.length === 0 ? (
+        <p>Loading tasks...</p>
+      ) : (
+        tasks.map(task => (
+          <div key={task.id} style={{
+            border: "1px solid #ccc",
+            margin: "10px",
+            padding: "10px"
+          }}>
+            <h4>{task.title}</h4>
+            <p>Status: {task.status}</p>
+            <p>Date: {task.date}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 }
-
-export default Dashboard;
