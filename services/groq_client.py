@@ -1,11 +1,12 @@
 import os
-from groq import Groq
 import time
+from groq import Groq
 
-def call_groq(prompt):
-
+def call_groq_safe(prompt):
     api_key = os.getenv("GROQ_API_KEY")
-    print("API KEY:", api_key)
+
+    # ✅ DEBUG: check which key is actually used
+    print("KEY USED:", api_key)
 
     client = Groq(api_key=api_key)
 
@@ -25,9 +26,7 @@ def call_groq(prompt):
             return response.choices[0].message.content
 
         except Exception as e:
-            print("FULL ERROR:", e)   # ✅ properly indented
-            import traceback
-            traceback.print_exc()
+            print("ERROR:", e)
             time.sleep(2)
 
-    return "AI service unavailable. Please try again later."
+    return None

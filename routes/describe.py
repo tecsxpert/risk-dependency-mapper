@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
-from services.groq_client import call_groq
+from services.groq_client import call_groq_safe
 
 describe_bp = Blueprint("describe", __name__)
 
-# Load prompt template
+
 def load_prompt(user_input):
     with open("prompts/describe_prompt.txt", "r") as f:
         template = f.read()
@@ -16,23 +16,29 @@ def describe():
 
     data = request.get_json()
 
-    # ✅ Input validation
+    # Input validation
     if not data or "input" not in data:
         return jsonify({"error": "Input is required"}), 400
 
-    user_input = data["input"]
+    user_input = data["input"].strip()
 
-    if len(user_input.strip()) == 0:
+    if not user_input:
         return jsonify({"error": "Input cannot be empty"}), 400
 
-    # ✅ Load prompt
+    # Load prompt
     prompt = load_prompt(user_input)
 
-    # ✅ Call Groq
-    result = call_groq(prompt)
+    # Safe AI call
+    result = call_groq_safe(prompt)
 
-    # ✅ Return structured response
+    # ✅ Handle failure (IMPORTANT for Day 7)
+    if not result:
+        return jsonify({
+            "description": "AI service unavailable",
+            "generated_at": datetime.utcnow().isoformat()
+        })
+
     return jsonify({
-        "description": result,
+        "description": result.strip(),
         "generated_at": datetime.utcnow().isoformat()
     })

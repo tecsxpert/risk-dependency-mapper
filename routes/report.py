@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.groq_client import call_groq
+from services.groq_client import call_groq_safe
 import json
 import re
 
@@ -30,16 +30,39 @@ def generate_report():
 
     prompt = load_prompt(user_input)
 
-    result = call_groq(prompt)
+    # ✅ Safe AI call
+    result = call_groq_safe(prompt)
+
+    # ✅ Handle AI failure (Day 7 requirement)
+    if not result:
+        return jsonify({
+            "title": "AI Report Unavailable",
+            "executive_summary": None,
+            "overview": None,
+            "top_items": [],
+            "recommendations": []
+        })
 
     json_part = extract_json(result)
 
     if not json_part:
-        return jsonify({"error": "No JSON found", "raw": result}), 500
+        return jsonify({
+            "title": "AI Report Unavailable",
+            "executive_summary": None,
+            "overview": None,
+            "top_items": [],
+            "recommendations": []
+        })
 
     try:
         parsed = json.loads(json_part)
     except:
-        return jsonify({"error": "Invalid JSON", "raw": result}), 500
+        return jsonify({
+            "title": "AI Report Unavailable",
+            "executive_summary": None,
+            "overview": None,
+            "top_items": [],
+            "recommendations": []
+        })
 
     return jsonify(parsed)

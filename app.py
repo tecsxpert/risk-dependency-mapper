@@ -1,11 +1,13 @@
 from flask import Flask
 from dotenv import load_dotenv
+import os
 
 from routes.describe import describe_bp
 from routes.recommend import recommend_bp
 from routes.report import report_bp
 
-load_dotenv()
+# Load .env from ai-service folder
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
 app = Flask(__name__)
 
