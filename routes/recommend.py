@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.groq_client import call_groq
+from services.groq_client import call_groq_safe
 import json
 import re
 
@@ -13,7 +13,6 @@ def load_prompt(user_input):
 
 
 def extract_json(text):
-    # Extract JSON array from messy AI output
     match = re.search(r'\[.*\]', text, re.DOTALL)
     if match:
         return match.group(0)
@@ -31,17 +30,21 @@ def recommend():
 
     prompt = load_prompt(user_input)
 
-    result = call_groq(prompt)
+    # ✅ Safe AI call
+    result = call_groq_safe(prompt)
 
-    # 🔥 FIX: extract clean JSON
+    # ✅ Handle AI failure
+    if not result:
+        return jsonify([])
+
     json_part = extract_json(result)
 
     if not json_part:
-        return jsonify({"error": "No JSON found", "raw": result}), 500
+        return jsonify([])
 
     try:
         parsed = json.loads(json_part)
     except:
-        return jsonify({"error": "Invalid JSON format", "raw": result}), 500
+        return jsonify([])
 
     return jsonify(parsed)
