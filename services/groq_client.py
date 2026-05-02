@@ -3,23 +3,22 @@ import time
 from groq import Groq
 from dotenv import load_dotenv
 
-# ✅ Load env
+# Load env
 load_dotenv()
 
 
 def call_groq_safe(prompt):
     api_key = os.getenv("GROQ_API_KEY")
 
-
+    # 🔐 Do NOT expose reason
     if not api_key:
-        print("ERROR: API KEY NOT FOUND")
         return None
 
     client = Groq(api_key=api_key)
 
     retries = 3
 
-    for attempt in range(retries):
+    for _ in range(retries):
         try:
             response = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
@@ -30,19 +29,19 @@ def call_groq_safe(prompt):
 
             return response.choices[0].message.content
 
-        except Exception as e:
-            print("ERROR:", e)
+        except Exception:
+            # 🔐 No print, no leak
             time.sleep(2)
 
     return None
 
 
-# ✅ THIS WAS MISSING
 def stream_groq(prompt):
     api_key = os.getenv("GROQ_API_KEY")
 
+    # 🔐 Do NOT expose error details
     if not api_key:
-        yield "[ERROR]: API key missing"
+        yield "Service unavailable"
         return
 
     client = Groq(api_key=api_key)
@@ -53,12 +52,13 @@ def stream_groq(prompt):
             messages=[{"role": "user", "content": prompt}],
             temperature=0.5,
             max_tokens=500,
-            stream=True  # 🔥 important for streaming
+            stream=True
         )
 
         for chunk in response:
             if chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
 
-    except Exception as e:
-        yield f"[ERROR]: {str(e)}"
+    except Exception:
+        # 🔐 Generic message only
+        yield "Service unavailable"

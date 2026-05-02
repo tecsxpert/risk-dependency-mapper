@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 from services.groq_client import call_groq_safe
+import os
 
 describe_bp = Blueprint("describe", __name__)
 
@@ -25,18 +26,24 @@ def describe():
     if not user_input:
         return jsonify({"error": "Input cannot be empty"}), 400
 
+    # 🔐 Check API key FIRST (IMPORTANT FIX)
+    if not os.getenv("GROQ_API_KEY"):
+        return jsonify({
+            "error": "Service temporarily unavailable"
+        }), 503
+
     # Load prompt
     prompt = load_prompt(user_input)
 
     # Safe AI call
     result = call_groq_safe(prompt)
 
-    # ✅ Handle failure (IMPORTANT for Day 7)
+    # Handle failure safely (no debug info exposed)
     if not result:
         return jsonify({
             "description": "AI service unavailable",
             "generated_at": datetime.utcnow().isoformat()
-        })
+        }), 503
 
     return jsonify({
         "description": result.strip(),
